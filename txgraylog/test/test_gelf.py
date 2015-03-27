@@ -2,7 +2,7 @@
 # See LICENSE for more details
 
 """
-Tests for :class: `~txgraylog.gelf.Graylog2`
+Tests for :class: `~txgraylog.gelf.GelfProtocol`
 """
 import time
 import json
