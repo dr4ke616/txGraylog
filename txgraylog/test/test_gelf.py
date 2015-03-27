@@ -99,7 +99,7 @@ class TestGELF(unittest.TestCase):
             'time': time.time(),
         })
 
-        messages = list(g.generate())
+        messages = g.generate()
 
         self.failUnless(len(messages) > 1)
         self.failUnless(messages[0].startswith('\x1e\x0f'))

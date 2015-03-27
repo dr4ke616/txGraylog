@@ -58,12 +58,21 @@ class GelfProtocol(object):
             the length of the compressed data is larger than the
             chunk size, we split into chunks
         """
-        compressed = zlib.compress(json.dumps(self.log_params))
-
-        if len(compressed) > self.chunk_size:
-            return self._get_chunks(compressed)
+        if len(self.compressed) > self.chunk_size:
+            return list(self._get_chunks(self.compressed))
         else:
-            return [compressed]
+            return [self.compressed]
+
+    def __iter__(self):
+
+        if len(self.compressed) > self.chunk_size:
+            return self._get_chunks(self.compressed)
+        else:
+            return iter(self.compressed)
+
+    @property
+    def compressed(self):
+        return zlib.compress(json.dumps(self.log_params))
 
     def _build_log_params(self, host, event):
         """ Build up the log paramaters
