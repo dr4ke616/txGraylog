@@ -20,7 +20,7 @@ class TestGELF(unittest.TestCase):
     """ Test our conversion between event dictionaries and GELF messages
     """
 
-    def testStandardLog(self):
+    def test_standard_log(self):
         """ Test a standard event dictionary that would be passed in by Twisted
         """
         t = time.time()
@@ -46,9 +46,34 @@ class TestGELF(unittest.TestCase):
         self.assertEquals(params['version'], '1.0')
         self.assertEquals(params['timestamp'], t)
 
-    def testExtendedParamaters(self):
+    def test_standard_log_iter(self):
+        """ Test a standard event dictionary that would be passed in by Twisted
+            using iter
         """
-        Test a log message with arbitrary parameters
+        t = time.time()
+        g = GelfProtocol('localhost', **{
+            'system': 'protocol',
+            'message': ['this is a log message', 'which could be continued'],
+            'isError': False,
+            'version': '1.0',
+            'time': t
+        })
+
+        for message in g:
+            params = json.loads(zlib.decompress(g.generate()[0]))
+
+            self.assertEquals(params['facility'], 'protocol')
+            self.assertEquals(params['short_message'], 'this is a log message')
+            self.assertEquals(
+                params['full_message'],
+                'this is a log message' + ' which could be continued'
+            )
+            self.assertEquals(params['level'], 6)
+            self.assertEquals(params['version'], '1.0')
+            self.assertEquals(params['timestamp'], t)
+
+    def test_extended_paramaters(self):
+        """ Test a log message with arbitrary parameters
         """
 
         g = GelfProtocol('localhost', **{
@@ -65,9 +90,8 @@ class TestGELF(unittest.TestCase):
         self.assertEquals(params['_username'], 'foo')
         self.assertEquals(params['_bar'], 'baz')
 
-    def testErrorLog(self):
-        """
-        Test an error log
+    def test_error_log(self):
+        """ Test an error log
         """
 
         f = failure.Failure(Exception('foo'))
@@ -84,9 +108,8 @@ class TestGELF(unittest.TestCase):
         self.assertEquals(params['short_message'], 'foo')
         self.failUnless('Traceback' in params['full_message'])
 
-    def testChunking(self):
-        """
-        Test the chunking of GELF messages
+    def test_chunking(self):
+        """ Test the chunking of GELF messages
         """
 
         longMessage = binascii.hexlify(
@@ -113,6 +136,36 @@ class TestGELF(unittest.TestCase):
             self.assertEquals(magic, '\x1e\x0f')
             self.assertEquals(seq, i)
             self.assertEquals(num_chunks, len(messages))
+
+            if old_id:
+                self.assertEquals(chunk_id, old_id)
+
+            old_id = chunk_id
+
+    def test_chunking_iter(self):
+        """ Test the chunking of GELF messages using iter
+        """
+
+        longMessage = binascii.hexlify(
+            randbytes.insecureRandom(3000)) + 'more!'
+
+        g = GelfProtocol('localhost', **{
+            'system': 'protocol',
+            'isError': False,
+            'message': longMessage,
+            'time': time.time(),
+        })
+
+        for index, message in enumerate(g):
+            self.failUnless(message.startswith('\x1e\x0f'))
+
+            old_id = None
+            magic, chunk_id, seq, num_chunks = struct.unpack(
+                '>2s32sHH', message[:38]
+            )
+
+            self.assertEquals(magic, '\x1e\x0f')
+            self.assertEquals(seq, index)
 
             if old_id:
                 self.assertEquals(chunk_id, old_id)

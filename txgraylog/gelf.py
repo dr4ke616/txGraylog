@@ -5,9 +5,9 @@
 """
 .. module:: gelf
     :platform: Unix, Windows
-    :synopsis: Graylog2 Gelf protocol. his module is inspired by
-        `Twisted logger for Graylog2` by Andrew Snowden. This can
-        be found at https://code.launchpad.net/~andrew-snowden/txgraylog2/
+    :synopsis: Graylog2 Gelf protocol. This module is inspired by Andrew
+        Snowden's own implementation of a Graylog observer. This can be
+        found at https://code.launchpad.net/~andrew-snowden/txgraylog2/
 .. moduleauthor:: Adam Drakeford <adamdrakeford@gmail.com>
 """
 
@@ -42,8 +42,9 @@ class GelfProtocol(object):
     def __init__(self, host, size=WAN_CHUNK, gelf_fmt=GELF_LEGACY, **kwargs):
         """ initalise the a Gelf protocol instance.
             :param size: the size of each chunk
-            :param gelf_fmt: You can use either the current or legacy
-                gelf format. GelfProtocol supports both
+            :param gelf_fmt: The format of GELF chunks is changing and versions
+                0.9.5p2 and before require a legacy format. This should be
+                either GELF_LEGACY or GELF_NEW
             :param kwargs: `dict` containing the log paramaters to be
                 used by Graylog
         """
@@ -51,30 +52,32 @@ class GelfProtocol(object):
         self.chunk_size = size
         self.gelf_format = gelf_fmt
 
-        self._build_log_params(host, kwargs)
+        self._build_log_params(kwargs)
 
     def generate(self):
         """ Compress the log paramaters and return either it. If
             the length of the compressed data is larger than the
             chunk size, we split into chunks
         """
-        if len(self.compressed) > self.chunk_size:
-            return list(self._get_chunks(self.compressed))
+        if len(self.compressed_log_params) > self.chunk_size:
+            return list(self._get_chunks(self.compressed_log_params))
         else:
-            return [self.compressed]
+            return [self.compressed_log_params]
 
     def __iter__(self):
 
-        if len(self.compressed) > self.chunk_size:
-            return self._get_chunks(self.compressed)
+        if len(self.compressed_log_params) > self.chunk_size:
+            return self._get_chunks(self.compressed_log_params)
         else:
-            return iter(self.compressed)
+            return iter(self.compressed_log_params)
 
     @property
-    def compressed(self):
+    def compressed_log_params(self):
+        """ Property to return back the compressed log paramaters
+        """
         return zlib.compress(json.dumps(self.log_params))
 
-    def _build_log_params(self, host, event):
+    def _build_log_params(self, event):
         """ Build up the log paramaters
         """
         if event['isError'] and 'failure' in event:
@@ -88,7 +91,7 @@ class GelfProtocol(object):
 
         self.log_params = {
             'version': event.get('version', ''),
-            'host': host,
+            'host': self.hostname,
             'short_message': short_message,
             'full_message': full_message,
             'timestamp': event.get('time', time.time()),
