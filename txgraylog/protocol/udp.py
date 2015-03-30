@@ -11,7 +11,7 @@
 from collections import deque
 from socket import gethostname
 
-from txgraylog.gelf import GelfProtocol
+from gelf import GelfProtocol
 from twisted.internet import protocol, reactor
 
 

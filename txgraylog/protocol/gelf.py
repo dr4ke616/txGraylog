@@ -13,9 +13,9 @@
 
 import zlib
 import time
-import json
 import uuid
 import struct
+import jsonlib as json
 
 from twisted.python import randbytes
 

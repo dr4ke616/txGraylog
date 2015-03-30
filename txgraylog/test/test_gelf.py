@@ -13,7 +13,7 @@ import binascii
 from twisted.trial import unittest
 from twisted.python import failure, randbytes
 
-from txgraylog.gelf import GelfProtocol
+from txgraylog.protocol.gelf import GelfProtocol
 
 
 class TestGELF(unittest.TestCase):
