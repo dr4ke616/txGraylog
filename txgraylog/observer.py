@@ -24,8 +24,11 @@ class GraylogObserver:
     def emit(self, event_dict):
         self.protocol.log_message(event_dict)
 
-    def start(self):
-        log.addObserver(self.emit)
+    def start(self, with_reactor=False):
+        if with_reactor:
+            reactor.callWhenRunning(log.addObserver, self.emit)
+        else:
+            log.addObserver(self.emit)
 
     def stop(self):
         log.removeObserver(self.emit)
