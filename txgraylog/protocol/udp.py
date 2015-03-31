@@ -20,6 +20,8 @@ class UDPPlainTextProtocol(protocol.DatagramProtocol):
         data to a Graylog2 server
     """
 
+    parameter_override = {}
+
     def __init__(self, host, port):
         """ Initialize our protocol
         """
@@ -43,12 +45,14 @@ class UDPPlainTextProtocol(protocol.DatagramProtocol):
         """
         if self.resolved and self.started and not self.connected:
             self.transport.connect(self.host_address, self.port)
-            self.connect = True
+            self.connected = True
 
-            for event in self.buffer:
-                self.log_message(event)
-
-            self.buffer.clear()
+            while True:
+                try:
+                    event = self.buffer.pop()
+                    self.send_to_graylog(event)
+                except IndexError:
+                    break
 
     def resolve(self):
         """ Resolve the host IP address to avoid to many DNS queries
@@ -68,13 +72,20 @@ class UDPPlainTextProtocol(protocol.DatagramProtocol):
     def send_to_graylog(self, message):
         """ Write the data to socket
         """
+
+        if not self.connected:
+            self.buffer.append(str(message))
+            return
+
         if self.transport:
             self.transport.write(str(message))
 
-    def log_message(self, message):
+    def log_message(self, event):
         """ The method to be called when we want to emit a log activity
+            The paramater overide can be set to include extra paramaters
         """
-        self.send_to_graylog(message)
+        event.update(self.parameter_override)
+        self.send_to_graylog(event)
 
 
 class UDPGelfProtocol(UDPPlainTextProtocol):
@@ -83,6 +94,10 @@ class UDPGelfProtocol(UDPPlainTextProtocol):
     """
 
     def log_message(self, event):
+        """ The method to be called when we want to emit a log activity
+            The paramater overide can be set to include extra paramaters
+        """
+        event.update(self.parameter_override)
         gelf = GelfProtocol(self.hostname, **event).generate()
         for message in gelf:
             self.send_to_graylog(message)
