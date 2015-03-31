@@ -1,5 +1,7 @@
 # txGraylog
 
+[![Build Status](https://travis-ci.org/dr4ke616/txGraylog.svg)](https://travis-ci.org/dr4ke616/txGraylog)
+
 `txGraylog` is a a twisted based client that interacts with a [Graylog](https://www.graylog.org/) server. Currently it supports the following protocols:
 - TCP (Plain text and Gelf protocol)
 - UDP (Plain text and Gelf protocol)
