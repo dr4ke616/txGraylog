@@ -6,6 +6,11 @@
 
 There is a plan to implement protocols for HTTP and AMQP.
 
+## Insall from PyPI
+```
+pip install txGraylog
+```
+
 ## Install from source
 ```
 git clone https://github.com/dr4ke616/txGraylog
