@@ -1,0 +1,5 @@
+#!/bin/bash
+TESTS=$(find txgraylog/test -maxdepth 1 -name 'test_*.py')
+coverage run $(which trial) $TESTS || exit $?
+coverage report --include='txgraylog/*' --omit='txgraylog/test/*'
+coverage html -d txgraylog/test/reports --include='txgraylog/*' --omit='txgraylog/test/*'
