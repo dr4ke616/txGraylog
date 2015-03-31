@@ -52,3 +52,4 @@ txrest/tests/reports/
 
 # Sphinx documentation
 docs/_build/
+txgraylog/test/reports/
