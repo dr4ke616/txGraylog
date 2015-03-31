@@ -39,7 +39,9 @@ class GelfProtocol(object):
             }
     """
 
-    def __init__(self, host, size=WAN_CHUNK, gelf_fmt=GELF_LEGACY, **kwargs):
+    def __init__(
+            self, host, size=WAN_CHUNK, gelf_fmt=GELF_LEGACY,
+            chunk=True, compress=True, **kwargs):
         """ initalise the a Gelf protocol instance.
             :param size: the size of each chunk
             :param gelf_fmt: The format of GELF chunks is changing and versions
@@ -52,6 +54,9 @@ class GelfProtocol(object):
         self.chunk_size = size
         self.gelf_format = gelf_fmt
 
+        self._chunk = chunk
+        self._compress = compress
+
         self._build_log_params(kwargs)
 
     def generate(self):
@@ -59,23 +64,28 @@ class GelfProtocol(object):
             the length of the compressed data is larger than the
             chunk size, we split into chunks
         """
-        if len(self.compressed_log_params) > self.chunk_size:
-            return list(self._get_chunks(self.compressed_log_params))
+        if self._chunk and len(self.encoded_log_params) > self.chunk_size:
+            return list(self._get_chunks(self.encoded_log_params))
         else:
-            return [self.compressed_log_params]
+            return [self.encoded_log_params]
 
     def __iter__(self):
-
-        if len(self.compressed_log_params) > self.chunk_size:
-            return self._get_chunks(self.compressed_log_params)
+        """ Iterate over each of the log paramaters
+        """
+        if self._chunk and len(self.encoded_log_params) > self.chunk_size:
+            return self._get_chunks(self.encoded_log_params)
         else:
-            return iter(self.compressed_log_params)
+            return iter(self.encoded_log_params)
 
     @property
-    def compressed_log_params(self):
+    def encoded_log_params(self):
         """ Property to return back the compressed log paramaters
         """
-        return zlib.compress(json.dumps(self.log_params))
+        params = (
+            zlib.compress(json.dumps(self.log_params))
+            if self._compress else json.dumps(self.log_params)
+        )
+        return params
 
     def _build_log_params(self, event):
         """ Build up the log paramaters
@@ -114,11 +124,11 @@ class GelfProtocol(object):
         num_chunks = (len(compressed) / self.chunk_size) + 1
 
         if self.gelf_format == GELF_LEGACY:
-            pieces = struct.pack(">H", num_chunks)
+            pieces = struct.pack('>H', num_chunks)
             chunk_id = uuid.uuid1().bytes + randbytes.secureRandom(16)
 
             for i in xrange(num_chunks):
-                yield ''.join([
+                chunk = ''.join([
                     '\x1e\x0f',
                     chunk_id,
                     struct.pack('>H', i),
@@ -128,12 +138,13 @@ class GelfProtocol(object):
                         i * self.chunk_size + self.chunk_size]
                     ]
                 )
+                yield chunk
         else:
-            pieces = struct.pack("B", num_chunks)
+            pieces = struct.pack('B', num_chunks)
             chunk_id = randbytes.secureRandom(8)
 
             for i in xrange(num_chunks):
-                yield ''.join([
+                chunk = ''.join([
                     '\x1e\x0f',
                     chunk_id,
                     struct.pack('B', i),
@@ -143,3 +154,4 @@ class GelfProtocol(object):
                         i * self.chunk_size + self.chunk_size]
                     ]
                 )
+                yield chunk

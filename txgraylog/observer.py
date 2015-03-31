@@ -9,7 +9,9 @@
 """
 from twisted.python import log
 from twisted.internet import reactor
-from twisted.internet.protocol import DatagramProtocol
+from twisted.internet.protocol import DatagramProtocol, Protocol
+
+from txgraylog.protocol.tcp import TCPGraylogFactory
 
 
 class GraylogObserver:
@@ -18,8 +20,17 @@ class GraylogObserver:
 
     def __init__(self, protocol, host, port):
         self.protocol = protocol(host, port)
-        if type(self.protocol.__class__) == type(DatagramProtocol):
+
+        if issubclass(self.protocol.__class__, DatagramProtocol):
             reactor.listenUDP(0, self.protocol)
+        elif issubclass(self.protocol.__class__, Protocol):
+            reactor.connectTCP(
+                self.protocol.host,
+                self.protocol.port,
+                TCPGraylogFactory(self.protocol)
+            )
+        else:
+            raise ValueError('Incompatible protocol')
 
     def emit(self, event_dict):
         self.protocol.log_message(event_dict)

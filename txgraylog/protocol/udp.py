@@ -34,7 +34,7 @@ class UDPPlainTextProtocol(protocol.DatagramProtocol):
         self.host_address = None
 
         self.hostname = gethostname()
-        self.buffer = deque()
+        self.buffer = deque(maxlen=1000)
 
         reactor.callWhenRunning(self.resolve)
 
@@ -72,7 +72,6 @@ class UDPPlainTextProtocol(protocol.DatagramProtocol):
     def send_to_graylog(self, message):
         """ Write the data to socket
         """
-
         if not self.connected:
             self.buffer.append(str(message))
             return
@@ -90,7 +89,7 @@ class UDPPlainTextProtocol(protocol.DatagramProtocol):
 
 class UDPGelfProtocol(UDPPlainTextProtocol):
     """ Graylog Gelf protocol which generates and sends data to a
-        Graylog2 server using the Gelf protocol
+        Graylog2 server using the Gelf protocol over UDP
     """
 
     def log_message(self, event):
