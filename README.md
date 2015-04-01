@@ -8,7 +8,7 @@
 
 There is a plan to implement protocols for HTTP and AMQP.
 
-## Insall from PyPI
+## Install from PyPI
 ```
 pip install txGraylog
 ```
@@ -21,7 +21,7 @@ python setup.py install
 ```
 
 ## Usage
-`txGraylog` can be used by starting a log observer like you would any other python logging module. Alternatively it can also be started as a `Twisted` service.
+`txGraylog` can be started by instantiating the log observer class and passing in the protocol, port and address to use. Alternatively it can also be started as a `Twisted` service supplying the same paramaters as the observer. `txGraylog` supports both plain text and [Gelf](https://www.graylog.org/resources/gelf-2/) when using TCP or UDP.
 
 ### Observer
 When instantiating the observer you need to import the observer class itself and the protocol you wish it use. Below is an example of starting the log observer using UDP.
@@ -63,7 +63,19 @@ service.setName('Graylog')
 application.addService(service)
 ```
 
+### Log
+Logging messages in your application doesnt change. You still import `twisted.python.log` and pass in the messages or errors you want by calling `msg` or `err`. However `txGraylog` adds additional functionality where you can pass in extra key value arguments that can be understood by the Graylog server. For example:
+```python
+from twisted.python import log
+
+log.msg('Some log message', customer_id=1234, app='my_application')
+```
+Its important to note that if you have a standard file log observer setup the key value arguments that you pass wont appear in the log files. These are only understood by the `txGraylog` client.
+
 ## TODO
 - Implement AMQP protocol
 - Implement HTTP protocol
 - More unit tests
+
+## Known Issues
+- When instantiating more that one log observer that uses two different protocols for the same host, for example a TCP and a UDP observer, if the TCP connection should drop `twisted` will stop the TCP factory. But for some reason `Twisted` will also stop the UDP factory. This means the UDP connection will fail to reconnect unless you restart your application. This wont be a problem for TCP as it implements the `ReconnectingClientFactory`.
