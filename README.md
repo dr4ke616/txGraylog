@@ -78,4 +78,4 @@ Its important to note that if you have a standard file log observer setup the ke
 - More unit tests
 
 ## Known Issues
-- When instantiating more that one log observer that uses two different protocols for the same host, for example a TCP and a UDP observer, if the TCP connection should drop `twisted` will stop the TCP factory. But for some reason `Twisted` will also stop the UDP factory. This means the UDP connection will fail to reconnect unless you restart your application. This wont be a problem for TCP as it implements the `ReconnectingClientFactory`.
+- When instantiating more than one log observer that uses two different protocols for the same host, for example a TCP and a UDP observer, if the TCP connection should drop `twisted` will stop the TCP factory. But for some reason `Twisted` will also stop the UDP factory. This means the UDP connection will fail to reconnect unless you restart your application. This wont be a problem for TCP as it implements the `ReconnectingClientFactory`.
