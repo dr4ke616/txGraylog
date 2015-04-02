@@ -2,9 +2,9 @@
 # See LICENSE for more details
 
 """
-.. module:: udp
+.. module:: tcp
     :platform: Unix, Windows
-    :synopsis: Graylog UDP protocol
+    :synopsis: Graylog TCP protocol
 .. moduleauthor:: Adam Drakeford <adamdrakeford@gmail.com>
 """
 

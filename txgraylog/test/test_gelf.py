@@ -108,7 +108,7 @@ class TestGELF(unittest.TestCase):
         self.assertEquals(params['short_message'], 'foo')
         self.failUnless('Traceback' in params['full_message'])
 
-    def test_chunking(self):
+    def test_chunking_legacy_wan_size(self):
         """ Test the chunking of GELF messages
         """
 
@@ -131,6 +131,113 @@ class TestGELF(unittest.TestCase):
         for i in xrange(len(messages)):
             magic, chunk_id, seq, num_chunks = struct.unpack(
                 '>2s32sHH', messages[i][:38]
+            )
+
+            self.assertEquals(magic, '\x1e\x0f')
+            self.assertEquals(seq, i)
+            self.assertEquals(num_chunks, len(messages))
+
+            if old_id:
+                self.assertEquals(chunk_id, old_id)
+
+            old_id = chunk_id
+
+    def test_chunking_legacy_lan_size(self):
+        """ Test the chunking of GELF messages
+        """
+        from txgraylog.protocol.gelf import LAN_CHUNK
+
+        longMessage = binascii.hexlify(
+            randbytes.insecureRandom(9000)) + 'more!'
+
+        g = GelfProtocol('localhost', size=LAN_CHUNK, **{
+            'system': 'protocol',
+            'isError': False,
+            'message': longMessage,
+            'time': time.time(),
+        })
+
+        messages = g.generate()
+
+        self.failUnless(len(messages) > 1)
+        self.failUnless(messages[0].startswith('\x1e\x0f'))
+
+        old_id = None
+        for i in xrange(len(messages)):
+            magic, chunk_id, seq, num_chunks = struct.unpack(
+                '>2s32sHH', messages[i][:38]
+            )
+
+            self.assertEquals(magic, '\x1e\x0f')
+            self.assertEquals(seq, i)
+            self.assertEquals(num_chunks, len(messages))
+
+            if old_id:
+                self.assertEquals(chunk_id, old_id)
+
+            old_id = chunk_id
+
+    def test_chunking_new_wan_size(self):
+        """ Test the chunking of GELF messages
+        """
+        from txgraylog.protocol.gelf import GELF_NEW
+
+        longMessage = binascii.hexlify(
+            randbytes.insecureRandom(3000)) + 'more!'
+
+        g = GelfProtocol('host', gelf_fmt=GELF_NEW, **{
+                'system': 'protocol',
+                'isError': False,
+                'message': longMessage,
+                'time': time.time(),
+        })
+
+        messages = g.generate()
+
+        self.failUnless(len(messages) > 1)
+        self.failUnless(messages[0].startswith('\x1e\x0f'))
+
+        old_id = None
+        for i in xrange(len(messages)):
+            magic, chunk_id, seq, num_chunks = struct.unpack(
+                '2s8sBB', messages[i][:12]
+            )
+
+            self.assertEquals(magic, '\x1e\x0f')
+            self.assertEquals(seq, i)
+            self.assertEquals(num_chunks, len(messages))
+
+            if old_id:
+                self.assertEquals(chunk_id, old_id)
+
+            old_id = chunk_id
+
+    def test_chunking_new_lan_size(self):
+        """ Test the chunking of GELF messages
+        """
+        from txgraylog.protocol.gelf import GELF_NEW, LAN_CHUNK
+
+        longMessage = binascii.hexlify(
+            randbytes.insecureRandom(9000)) + 'more!'
+
+        data = {
+            'system': 'protocol',
+            'isError': False,
+            'message': longMessage,
+            'time': time.time()
+        }
+
+        messages = GelfProtocol(
+            'host', gelf_fmt=GELF_NEW, size=LAN_CHUNK, **data
+        ).generate()
+
+        self.failUnless(len(messages) > 1)
+        self.failUnless(messages[0].startswith('\x1e\x0f'))
+
+        old_id = None
+        for i in xrange(len(messages)):
+            magic, chunk_id, seq, num_chunks = struct.unpack(
+                '2s8sBB', messages[i][:12]
             )
 
             self.assertEquals(magic, '\x1e\x0f')
