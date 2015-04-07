@@ -4,7 +4,7 @@
 
 `txGraylog` is a [Twisted](https://twistedmatrix.com/) based client for a Graylog server. [Graylog](https://www.graylog.org/) is a log management platform for collecting, indexing, and analyzing log messages from applications. `txGraylog` provides an interface for different protocols that can be used to send log messages to a Graylog server. At the moment it supports TCP and UDP, both plain text and the Gelf protocol. There is a plan to implement protocols for HTTP and AMQP.
 
-Protocols:
+## Protocols:
 - TCP Plain text
 - UDP Plain text
 - TCP Gelf
