@@ -2,11 +2,14 @@
 
 [![Build Status](https://travis-ci.org/dr4ke616/txGraylog.svg)](https://travis-ci.org/dr4ke616/txGraylog)
 
-`txGraylog` is a a [Twisted](https://twistedmatrix.com/) based client that interacts with a [Graylog](https://www.graylog.org/) server. Currently it supports the following protocols:
-- TCP (Plain text and Gelf protocol)
-- UDP (Plain text and Gelf protocol)
+`txGraylog` is a [Twisted](https://twistedmatrix.com/) based client for a Graylog server. [Graylog](https://www.graylog.org/) is a log management platform for collecting, indexing, and analyzing log messages from applications. `txGraylog` provides an interface for different protocols that can be used to send log messages to a Graylog server. At the moment it supports TCP and UDP, both plain text and the Gelf protocol. There is a plan to implement protocols for HTTP and AMQP.
 
-There is a plan to implement protocols for HTTP and AMQP.
+Protocols:
+- TCP Plain text
+- UDP Plain text
+- TCP Gelf
+- UDP Gelf
+
 
 ## Install from PyPI
 ```
