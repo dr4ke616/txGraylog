@@ -25,6 +25,11 @@ setup(
     tests_require=['twisted>=10.2.0', 'coverage', 'jsonlib'],
     install_requires=['twisted>=10.2.0', 'jsonlib'],
     requires=['twisted(>=10.2.0)'],
+    extras_require={
+        "dev": [
+            "coverage",
+        ],
+    },
     zip_safe=False,
     classifiers=[
         'Framework :: Twisted',
