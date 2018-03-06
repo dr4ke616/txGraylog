@@ -1,4 +1,4 @@
 #!/bin/bash -e
 python -m coverage run $(type -p trial) txgraylog
-coverage report --include='src/txgraylog/*' --omit='src/txgraylog/test/*'
-coverage html -d src/txgraylog/test/reports --include='src/txgraylog/*' --omit='src/txgraylog/test/*'
+coverage report --include='*/txgraylog/*' --omit='*/txgraylog/test/*'
+coverage html -d txgraylog/test/reports --include='*/txgraylog/*' --omit='*/txgraylog/test/*'
