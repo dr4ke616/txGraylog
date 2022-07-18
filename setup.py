@@ -20,10 +20,16 @@ setup(
     author_email='adamdrakeford@gmail.com',
     license='MIT',
     url='https://github.com/dr4ke616/txGraylog/',
-    packages=find_packages(),
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     tests_require=['twisted>=10.2.0', 'coverage', 'jsonlib'],
     install_requires=['twisted>=10.2.0', 'jsonlib'],
     requires=['twisted(>=10.2.0)'],
+    extras_require={
+        "dev": [
+            "coverage",
+        ],
+    },
     zip_safe=False,
     classifiers=[
         'Framework :: Twisted',
